@@ -8,7 +8,7 @@ import numpy as np
 
 class UnicodeChar:
     """Unicode character with optical properties"""
-    
+
     def __init__(self, char: str, weight: float, density: float):
         """
         Args:
@@ -19,7 +19,7 @@ class UnicodeChar:
         self.char = char
         self.weight = weight
         self.density = density
-    
+
     def __repr__(self):
         return f"UnicodeChar('{self.char}', weight={self.weight:.3f})"
 
@@ -37,7 +37,7 @@ UNICODE_CHARS: List[UnicodeChar] = [
     UnicodeChar('▀', 0.3, 0.35),     # Upper half block
     UnicodeChar('▌', 0.3, 0.35),     # Left half block
     UnicodeChar('▐', 0.3, 0.35),     # Right half block
-    
+
     # Medium-light characters
     UnicodeChar('▖', 0.4, 0.45),     # Quadrant lower left
     UnicodeChar('▗', 0.4, 0.45),     # Quadrant lower right
@@ -49,7 +49,7 @@ UNICODE_CHARS: List[UnicodeChar] = [
     UnicodeChar('▝', 0.4, 0.45),     # Quadrant upper right
     UnicodeChar('▞', 0.5, 0.55),     # Quadrant upper right and lower left
     UnicodeChar('▟', 0.5, 0.55),     # Quadrant upper right and lower left and lower right
-    
+
     # Medium characters
     UnicodeChar('▱', 0.45, 0.5),     # White parallelogram
     UnicodeChar('▰', 0.55, 0.6),     # Black parallelogram
@@ -61,7 +61,7 @@ UNICODE_CHARS: List[UnicodeChar] = [
     UnicodeChar('▹', 0.5, 0.55),     # Right-pointing small triangle
     UnicodeChar('►', 0.5, 0.55),     # Up-pointing triangle
     UnicodeChar('▻', 0.5, 0.55),     # Right-pointing triangle
-    
+
     # Medium-dark characters
     UnicodeChar('◐', 0.6, 0.65),     # Circle with left half black
     UnicodeChar('◑', 0.6, 0.65),     # Circle with right half black
@@ -71,7 +71,7 @@ UNICODE_CHARS: List[UnicodeChar] = [
     UnicodeChar('◕', 0.65, 0.7),     # Circle with all but upper left quadrant black
     UnicodeChar('◖', 0.6, 0.65),     # Left half circle
     UnicodeChar('◗', 0.6, 0.65),     # Right half circle
-    
+
     # Dark characters
     UnicodeChar('◘', 0.7, 0.75),     # Inverse bullet
     UnicodeChar('◙', 0.7, 0.75),     # Inverse white circle
@@ -81,7 +81,7 @@ UNICODE_CHARS: List[UnicodeChar] = [
     UnicodeChar('◝', 0.65, 0.7),     # Upper right quadrant circular arc
     UnicodeChar('◞', 0.65, 0.7),     # Lower right quadrant circular arc
     UnicodeChar('◟', 0.65, 0.7),     # Lower left quadrant circular arc
-    
+
     # Very dark characters
     UnicodeChar('◠', 0.75, 0.8),     # Upper half circle
     UnicodeChar('◡', 0.75, 0.8),     # Lower half circle
@@ -93,7 +93,7 @@ UNICODE_CHARS: List[UnicodeChar] = [
     UnicodeChar('◬', 0.75, 0.8),     # White up-pointing triangle with dot
     UnicodeChar('◭', 0.75, 0.8),     # Up-pointing triangle with left half black
     UnicodeChar('◮', 0.75, 0.8),     # Up-pointing triangle with right half black
-    
+
     # Almost black
     UnicodeChar('◯', 0.85, 0.9),     # Large circle
     UnicodeChar('◰', 0.8, 0.85),     # Square with left half black
@@ -104,7 +104,7 @@ UNICODE_CHARS: List[UnicodeChar] = [
     UnicodeChar('◵', 0.8, 0.85),     # Square with lower right diagonal half black
     UnicodeChar('◶', 0.8, 0.85),     # Square with upper right diagonal half black
     UnicodeChar('◷', 0.8, 0.85),     # Square with lower left diagonal half black
-    
+
     # Black characters
     UnicodeChar('■', 0.9, 0.95),     # Black square
     UnicodeChar('□', 0.1, 0.15),     # White square (for contrast)
@@ -119,7 +119,7 @@ UNICODE_CHARS: List[UnicodeChar] = [
     UnicodeChar('◆', 0.9, 0.95),     # Black diamond
     UnicodeChar('◇', 0.1, 0.15),     # White diamond
     UnicodeChar('◈', 0.5, 0.55),     # White diamond containing black small diamond
-    
+
     # Full black
     UnicodeChar('█', 1.0, 1.0),      # Full block - black
     UnicodeChar('▉', 0.95, 1.0),     # Left seven eighths block
@@ -148,10 +148,10 @@ UNICODE_CHARS: List[UnicodeChar] = [
 def get_char_by_weight(target_weight: float) -> str:
     """
     Get Unicode character closest to target optical weight
-    
+
     Args:
         target_weight: Target optical weight (0.0 - 1.0)
-    
+
     Returns:
         Unicode character
     """
@@ -159,21 +159,21 @@ def get_char_by_weight(target_weight: float) -> str:
         target_weight = 0
     if target_weight > 1:
         target_weight = 1
-    
+
     # Binary search for closest character
     weights = np.array([char.weight for char in UNICODE_CHARS])
     idx = np.abs(weights - target_weight).argmin()
-    
+
     return UNICODE_CHARS[idx].char
 
 
 def get_char_by_luminance(luminance: float) -> str:
     """
     Get Unicode character based on luminance
-    
+
     Args:
         luminance: Luminance value (0.0 - 1.0, where 0 is black, 1 is white)
-    
+
     Returns:
         Unicode character
     """
