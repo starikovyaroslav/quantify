@@ -1,0 +1,53 @@
+[MASTER]
+py-version=3.11
+jobs=0
+suggestion-mode=yes
+
+[MESSAGES CONTROL]
+disable=
+    C0111,  # missing-docstring
+    C0114,  # missing-module-docstring
+    C0115,  # missing-class-docstring
+    C0116,  # missing-function-docstring
+    R0903,  # too-few-public-methods
+    R0913,  # too-many-arguments
+    R0912,  # too-many-branches
+    R0914,  # too-many-locals
+    R0915,  # too-many-statements
+    W0212,  # protected-access
+
+[FORMAT]
+max-line-length=100
+indent-string='    '
+indent-after-paren=4
+indent-inner-block=4
+expected-line-ending-format=LF
+
+[BASIC]
+good-names=i,j,k,ex,Run,_,id,db,pk
+
+[DESIGN]
+max-args=7
+max-attributes=12
+max-locals=20
+max-returns=6
+max-branches=15
+max-statements=60
+max-parents=7
+max-public-methods=25
+max-bool-expr=5
+
+[IMPORTS]
+preferred-modules=
+    numpy,
+    PIL
+import-graph=
+    app.*:celery.*,redis.*
+    app.*:PIL.*,numpy.*
+
+[EXCEPTIONS]
+overgeneral-exceptions=Exception
+
+
+
+

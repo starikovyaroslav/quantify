@@ -1,0 +1,157 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: quanttxt-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - quanttxt-network
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: quanttxt-postgres
+    environment:
+      POSTGRES_USER: quanttxt
+      POSTGRES_PASSWORD: quanttxt_password
+      POSTGRES_DB: quanttxt
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U quanttxt"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - quanttxt-network
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: quanttxt-api
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - DATABASE_URL=postgresql+asyncpg://quanttxt:quanttxt_password@postgres/quanttxt
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    volumes:
+      - ./uploads:/app/uploads
+      - ./results:/app/results
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    networks:
+      - quanttxt-network
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: quanttxt-worker
+    command: celery -A app.celery_app worker --loglevel=info --concurrency=4
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - DATABASE_URL=postgresql+asyncpg://quanttxt:quanttxt_password@postgres/quanttxt
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    volumes:
+      - ./uploads:/app/uploads
+      - ./results:/app/results
+    depends_on:
+      - redis
+      - api
+    networks:
+      - quanttxt-network
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: quanttxt-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    depends_on:
+      - api
+    networks:
+      - quanttxt-network
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    container_name: quanttxt-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/rate_limit.conf:/etc/nginx/conf.d/rate_limit.conf:ro
+    depends_on:
+      - api
+      - frontend
+    networks:
+      - quanttxt-network
+    restart: unless-stopped
+
+  # Мониторинг нагрузки
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: quanttxt-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - quanttxt-network
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: quanttxt-grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    depends_on:
+      - prometheus
+    networks:
+      - quanttxt-network
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+  postgres_data:
+  prometheus_data:
+  grafana_data:
+
+networks:
+  quanttxt-network:
+    driver: bridge
+
